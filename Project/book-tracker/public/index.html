@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>CRUD Buku</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    input, button { margin: 5px; }
+    table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    tr:hover { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>CRUD Buku</h1>
+
+  <h3>Tambah Buku</h3>
+  <input type="text" id="title" placeholder="Judul">
+  <input type="text" id="author" placeholder="Penulis">
+  <input type="number" id="year" placeholder="Tahun">
+  <button onclick="addBook()">Tambah</button>
+
+  <h3>Daftar Buku</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Judul</th>
+        <th>Penulis</th>
+        <th>Tahun</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="bookList"></tbody>
+  </table>
+
+  <script>
+    const API = 'http://localhost:3000/books';
+
+    async function fetchBooks() {
+      const res = await fetch(API);
+      const data = await res.json();
+      const list = document.getElementById('bookList');
+      list.innerHTML = '';
+      data.forEach(book => {
+        list.innerHTML += `
+          <tr>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.year}</td>
+            <td>
+              <button onclick="deleteBook('${book._id}')">Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function addBook() {
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      const year = document.getElementById('year').value;
+
+      if (!title || !author || !year) {
+        alert("Harap isi semua field");
+        return;
+      }
+
+      await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, author, year: parseInt(year) })
+      });
+
+      document.getElementById('title').value = '';
+      document.getElementById('author').value = '';
+      document.getElementById('year').value = '';
+
+      fetchBooks();
+    }
+
+    async function deleteBook(id) {
+      await fetch(`${API}/${id}`, { method: 'DELETE' });
+      fetchBooks();
+    }
+
+    fetchBooks();
+  </script>
+</body>
+</html>
